@@ -12,6 +12,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+license = {file = "LICENSE"}
+dependencies = [
+    "sanic",
+    "sanic_ext",
+    'nacos-sdk-python>=1.0.0',
+]
 
 [project.urls]
 Homepage = "https://github.com/Renz7/sanic_nacos"
