@@ -84,7 +84,7 @@ class NacosExt(Extension):
                     cluster_name=self.bootstrap_cfg['NACOS_CLUSTER_NAME'],
                     heartbeat_interval=self.bootstrap_cfg['NACOS_HB_INTERVAL'],
                     group_name=self.bootstrap_cfg['NACOS_GROUP'],
-                    metadata={"__registry_by": self.name},
+                    metadata={"__registry_by__": self.name},
             ):
                 logger.info(f"add nacos instance success, {self.bootstrap_cfg}")
             else:

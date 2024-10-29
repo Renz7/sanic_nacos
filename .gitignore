@@ -2,3 +2,5 @@
 
 *.pyi
 *.pyc
+dist/
+*.egg-info/

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 
-Time    : 2024/10/25 14:33
+Time    : 2024/10/29 11:17
 Author  : ren
 """
 
-from src.sanic_nacos import NacosExt
+from sanic_nacos.sanic_nacos import NacosExt
 
 __all__ = ["NacosExt"]
