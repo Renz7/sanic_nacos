@@ -7,7 +7,6 @@ Author  : ren
 """
 import ipaddress
 import urllib.parse
-from collections import OrderedDict
 
 import netifaces
 from nacos import NacosClient
@@ -37,6 +36,8 @@ class NacosExt(Extension):
         "NACOS_SERVER_IP": None,
         "NACOS_SERVER_PORT": None,
         "NACOS_HB_INTERVAL": 30,
+        "NACOS_CONFIG_DATA_ID": None,
+        "NACOS_CONFIG_GROUP": "DEFAULT_GROUP",
     }
 
     _client: NacosClient = None
@@ -57,13 +58,46 @@ class NacosExt(Extension):
         else:
             self._client = self.app.ctx.cNACOS_CLIENT
         self._registry()
+        if self.bootstrap_cfg['NACOS_CONFIG_DATA_ID']:
+            logger.info(f"load config from nacos, data-id: {self.bootstrap_cfg['NACOS_CONFIG_DATA_ID']}")
+            self._config()
 
     def label(self):
         return "SanicNacos"
 
+    def _config(self):
+        cfg_str = self._client.get_config(data_id=self.bootstrap_cfg['NACOS_CONFIG_DATA_ID'],
+                                          group=self.bootstrap_cfg['NACOS_CONFIG_GROUP'], timeout=5, no_snapshot=True)
+        logger.debug("get config from nacos, %s", cfg_str)
+        try:
+            import json
+            cfg = json.loads(cfg_str)
+            self.app.config.update_config(cfg)
+            return
+        except Exception as e:
+            logger.warning(f"parse config error, {e}")
+
+        try:
+            import yaml
+            cfg = yaml.parse(cfg_str, yaml.SafeLoader())
+            self.app.config.update_config(cfg)
+            return
+        except Exception as e:
+            logger.warning(f"parse config error, {e}")
+        try:
+            import configparser
+
+            parse = configparser.ConfigParser()
+            parse.read_string(cfg_str)
+            cfg = {k: dict(parse.items(k)) for k in parse.sections()}
+            self.app.config.update_config(cfg)
+            return
+        except Exception as e:
+            logger.warning(f"parse config error, {e}")
+        raise ValueError("parse config error")
+
     def _registry(self):
         if self.bootstrap_cfg['NACOS_ENABLE']:
-            self.app.before_server_start(self.add_naming_instance)
             self.app.after_server_start(self.add_naming_instance)
         else:
             logger.warning("nacos discovery is disabled")
@@ -86,7 +120,8 @@ class NacosExt(Extension):
                     group_name=self.bootstrap_cfg['NACOS_GROUP'],
                     metadata={"__registry_by__": self.name},
             ):
-                logger.info(f"add nacos instance success, {self.bootstrap_cfg}")
+                logger.info(
+                    f"add nacos instance success, {self.bootstrap_cfg['NACOS_SERVICE_NAME']}:{self.bootstrap_cfg['NACOS_SERVER_IP']}:{self.bootstrap_cfg['NACOS_SERVER_PORT']}")
             else:
                 logger.error("add nacos instance failed")
         else:
@@ -94,19 +129,21 @@ class NacosExt(Extension):
 
 
 def get_ip_addresses_with_subnet(prefer_subnet: str = "192.0.0.0/8"):
-    ip_info = OrderedDict()
+    ip_info = []
     for interface in netifaces.interfaces():
         addresses = netifaces.ifaddresses(interface)
         if netifaces.AF_INET in addresses:
             for addr in addresses[netifaces.AF_INET]:
-                ip_info[addr["addr"]] = addr["addr"]
                 prefer = ipaddress.ip_network(prefer_subnet)
                 if ipaddress.ip_address(addr["addr"]) in prefer:
-                    ip_info[addr["addr"]] = addr["addr"]
-                    ip_info.move_to_end(addr["addr"], last=False)
+                    ip_info.insert(0, addr["addr"])
                     break
-    logger.info(f"find ip {ip_info}")
-    return ip_info.popitem(last=False)[0]
+                else:
+                    ip_info.append(addr["addr"])
+    logger.debug("find ip address, %s", ip_info)
+    ip = ip_info[0] if ip_info else "127.0.0.1"
+    logger.info(f"registry with prefer ip address: {ip}")
+    return ip
 
 
 def get_server_port(app: Sanic):
