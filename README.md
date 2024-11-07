@@ -1,6 +1,34 @@
-SANIC-NACOS
+# SANIC-NACOS
 
 [sanic](https://sanic.dev/) extension for [nacos](https://nacos.io/) service register.
+
+[![PyPI version](https://badge.fury.io/py/sanic-nacos.svg)](https://pypi.org/project/sanic-nacos/)
+[![Downloads](https://pepy.tech/badge/sanic-nacos)](https://www.pepy.tech/projects/sanic-nacos)
+[!{Issues](https://img.shields.io/github/issues/Renz7/sanic_nacos)](https://github.com/Renz7/sanic_nacos/issues)
+
+# How to
+
+## Install
+
+``` shell
+pip install sanic-nacos
+```
+
+## Usage
+
+```python
+import sanic
+from sanic_ext import Extend
+from sanic_nacos import NacosExt
+
+app = sanic.Sanic("sanic-nacos")
+app.config.update({"NACOS_CONFIG_DATA_ID": "test.json"})
+Extend.register(NacosExt)
+
+if __name__ == '__main__':
+    app.run(port=9001)
+
+```
 
 # Config
 
@@ -23,18 +51,3 @@ SANIC-NACOS
 | NACOS_CONFIG_DATA_ID | None           | nacos config data id                                               |
 | NACOS_CONFIG_GROUP   | DEFAULT_GROUP  | nacos config group                                                 |
 
-exapmle:
-
-```python
-import sanic
-from sanic_ext import Extend
-from sanic_nacos import NacosExt
-
-app = sanic.Sanic("sanic-nacos")
-app.config.update({"NACOS_CONFIG_DATA_ID": "test.json"})
-Extend.register(NacosExt)
-
-if __name__ == '__main__':
-    app.run(port=9001)
-
-```
