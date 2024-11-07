@@ -4,7 +4,7 @@
 
 [![PyPI version](https://badge.fury.io/py/sanic-nacos.svg)](https://pypi.org/project/sanic-nacos/)
 [![Downloads](https://pepy.tech/badge/sanic-nacos)](https://www.pepy.tech/projects/sanic-nacos)
-[!{Issues](https://img.shields.io/github/issues/Renz7/sanic_nacos)](https://github.com/Renz7/sanic_nacos/issues)
+[![Issues](https://img.shields.io/github/issues/Renz7/sanic_nacos)](https://github.com/Renz7/sanic_nacos/issues)
 
 # How to
 
